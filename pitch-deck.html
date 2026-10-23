@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SchemeNavigator — Discover. Understand. Apply.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0F2C4C;
+      --navy-dark: #091C31;
+      --navy-light: #1E3A5F;
+      --teal: #0D9488;
+      --teal-light: #14B8A6;
+      --teal-glow: rgba(13, 148, 136, 0.25);
+      --amber: #D97706;
+      --amber-light: #F59E0B;
+      --gold: #C2410C;
+      --violet: #6D28D9;
+      --violet-light: #8B5CF6;
+      --rose: #BE123C;
+      --rose-light: #E11D48;
+      --sky: #0284C7;
+      --sky-light: #38BDF8;
+      --bg: #F8FAFC;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --card-border: #E2E8F0;
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --text-light: #94A3B8;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 2px 4px rgba(15, 44, 76, 0.04);
+      --shadow-md: 0 10px 25px -5px rgba(15, 44, 76, 0.08), 0 8px 10px -6px rgba(15, 44, 76, 0.04);
+      --shadow-lg: 0 20px 35px -10px rgba(15, 44, 76, 0.12), 0 10px 15px -5px rgba(15, 44, 76, 0.06);
+      --shadow-glow: 0 0 25px rgba(13, 148, 136, 0.35);
+      --transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      user-select: none;
+    }
+
+    /* Deck Layout Container with Clean Neutral Grid Background */
+    #deck-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background-color: #F8FAFC;
+      background-image: 
+        linear-gradient(to right, rgba(203, 213, 225, 0.45) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(203, 213, 225, 0.45) 1px, transparent 1px),
+        linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+      background-size: 48px 48px, 48px 48px, 100% 100%;
+    }
+
+    /* Ambient Lighting Orbs - Neutral Cool Slate & Soft Sky */
+    .ambient-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+      animation: ambientPulse 6s ease-in-out infinite alternate;
+    }
+
+    .ambient-orb-1 {
+      top: -60px;
+      left: 18%;
+      width: 420px;
+      height: 420px;
+      background: rgba(56, 189, 248, 0.09);
+    }
+
+    .ambient-orb-2 {
+      top: -40px;
+      right: 20%;
+      width: 380px;
+      height: 380px;
+      background: rgba(99, 102, 241, 0.06);
+      animation-delay: 2s;
+    }
+
+    @keyframes ambientPulse {
+      0% { transform: scale(1) translateY(0); opacity: 0.5; }
+      100% { transform: scale(1.08) translateY(12px); opacity: 0.7; }
+    }
+
+    /* Top Progress Bar */
+    #progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--teal), var(--sky-light), var(--violet-light));
+      z-index: 100;
+      transition: width 0.4s ease;
+      box-shadow: 0 0 12px rgba(13, 148, 136, 0.6);
+    }
+
+    /* Slides Stage */
+    #stage {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      perspective: 1200px;
+      z-index: 10;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 3rem 4.5rem 4.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(0.97) translateY(20px);
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                  visibility 0.45s;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    .slide.prev {
+      opacity: 0;
+      transform: scale(1.02) translateY(-20px);
+    }
+
+    /* Header Accents */
+    .slide-header {
+      position: relative;
+      margin-bottom: 1.2rem;
+    }
+
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0.85rem;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      background: rgba(13, 148, 136, 0.1);
+      color: var(--teal);
+      border: 1px solid rgba(13, 148, 136, 0.25);
+      backdrop-filter: blur(8px);
+    }
+
+    .slide-title {
+      font-size: 2.35rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .slide-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      font-weight: 500;
+    }
+
+    /* Bottom Status Bar */
+    #bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 48px;
+      background: var(--navy);
+      color: #CBD5E1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      font-size: 0.85rem;
+      z-index: 50;
+      box-shadow: 0 -4px 20px rgba(15, 44, 76, 0.15);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #bottom-bar.hidden-footer {
+      transform: translateY(100%);
+    }
+
+    .bar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+
+    .bar-brand .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--teal-light);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--teal-light);
+    }
+
+    .bar-tagline {
+      color: #94A3B8;
+      font-weight: 400;
+    }
+
+    .bar-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .counter-pill {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-weight: 600;
+      color: #FFFFFF;
+      font-size: 0.85rem;
+    }
+
+    .control-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: var(--transition);
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .footer-hide-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .footer-hide-btn:hover {
+      background: rgba(13, 148, 136, 0.4);
+      border-color: var(--teal-light);
+    }
+
+    /* Interactive 3D Tilt Card Base */
+    .tilt-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    /* ========================================================
+       SLIDE 1: TITLE & TEAM
+       ======================================================== */
+    .slide-1-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      flex: 1;
+      gap: 1.25rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 1.2rem;
+      background: rgba(13, 148, 136, 0.12);
+      border: 1px solid rgba(13, 148, 136, 0.35);
+      border-radius: var(--radius-full);
+      color: var(--teal);
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero-title {
+      font-size: 4.6rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      padding-bottom: 0.15em;
+      display: inline-block;
+      background: linear-gradient(135deg, var(--navy) 35%, var(--teal) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-tagline {
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: var(--teal);
+      letter-spacing: -0.01em;
+    }
+
+    .hero-sub {
+      font-size: 1.3rem;
+      color: var(--text-muted);
+      max-width: 680px;
+    }
+
+    .team-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 1.15rem 2.5rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .team-card:hover {
+      border-color: var(--teal);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .team-label {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: 0.04em;
+    }
+
+    .team-members {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .team-pill {
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      padding: 0.35rem 0.9rem;
+      border-radius: var(--radius-full);
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--navy);
+      transition: var(--transition);
+      cursor: default;
+    }
+
+    .team-pill:hover {
+      background: var(--navy);
+      color: #FFFFFF;
+      border-color: var(--navy);
+      transform: translateY(-2px);
+    }
+
+    .hero-footer-banner {
+      background: var(--navy);
+      color: #FFFFFF;
+      padding: 0.85rem 2.2rem;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    /* ========================================================
+       SLIDE 2: THE PROBLEM (INTERACTIVE CASE STUDIES)
+       ======================================================== */
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.6rem;
+      margin-top: 1rem;
+      flex: 1;
+    }
+
+    .problem-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 1.8rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+    }
+
+    .problem-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+    }
+
+    .problem-card.discover::before { background: var(--teal); }
+    .problem-card.understand::before { background: var(--amber); }
+    .problem-card.trust::before { background: var(--gold); }
+
+    .problem-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .problem-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .problem-card.discover .problem-badge { color: var(--teal); }
+    .problem-card.understand .problem-badge { color: var(--amber); }
+    .problem-card.trust .problem-badge { color: var(--gold); }
+
+    .problem-desc {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.35;
+      margin-bottom: 1rem;
+    }
+
+    /* Real World Case Box (Interactive Reveal) */
+    .case-study-box {
+      margin-top: auto;
+      background: #F8FAFC;
+      border: 1px dashed #CBD5E1;
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 0.9rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      transition: var(--transition);
+    }
+
+    .case-study-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+      color: var(--navy);
+      font-size: 0.8rem;
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .result-banner {
+      background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%);
+      border: 2px solid rgba(190, 18, 60, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 1.35rem 2.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-md);
+      margin-top: 1.2rem;
+    }
+
+    .result-title {
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--rose);
+      margin-bottom: 0.25rem;
+    }
+
+    .result-text {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    /* ========================================================
+       SLIDE 3: OUR SOLUTION (INTERACTIVE 5-STEP PIPELINE)
+       ======================================================== */
+    .solution-pipeline {
+      display: flex;
+      align-items: stretch;
+      gap: 0.85rem;
+      margin-top: 1rem;
+    }
+
+    .step-card {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 1.4rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+      backdrop-filter: blur(8px);
+    }
+
+    .step-card:hover, .step-card.active-step {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--teal);
+    }
+
+    .step-card.active-step {
+      background: #FFFFFF;
+      border-width: 2px;
+      box-shadow: 0 0 25px rgba(13, 148, 136, 0.25);
+    }
+
+    .step-num-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #FFFFFF;
+      margin-bottom: 0.9rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .step-1 .step-num-badge { background: var(--teal); }
+    .step-2 .step-num-badge { background: var(--sky); }
+    .step-3 .step-num-badge { background: var(--violet); }
+    .step-4 .step-num-badge { background: var(--amber); }
+    .step-5 .step-num-badge { background: var(--gold); }
+
+    .step-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 0.4rem;
+    }
+
+    .step-body {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    .pipeline-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--teal);
+      font-size: 1.4rem;
+      opacity: 0.6;
+    }
+
+    /* Dynamic Step Detail Showcase */
+    .step-detail-panel {
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
+      border-left: 5px solid var(--teal);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 1.6rem;
+      margin-top: 1.2rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .step-detail-left h4 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .step-detail-left p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .auto-play-btn {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: var(--navy);
+      padding: 0.45rem 1rem;
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+      transition: var(--transition);
+    }
+
+    .auto-play-btn:hover {
+      background: var(--navy);
+      color: #FFFFFF;
+    }
+
+    .solution-banner {
+      background: var(--navy);
+      color: #FFFFFF;
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1.2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .solution-banner h3 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      background: linear-gradient(90deg, #FFFFFF, var(--teal-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ========================================================
+       SLIDE 4: IBM BoB × SCHEMENAVIGATOR (Premium Visual Redesign)
+       ======================================================== */
+    #slide-4 {
+      justify-content: space-between;
+      gap: 0.65rem;
+      padding: 2.2rem 4rem 3.8rem;
+    }
+
+    #slide-4 .slide-header {
+      max-width: 1220px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .bob-v2-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-width: 1220px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    /* Top Row: 3 Pipeline Stages (ASK ➔ PLAN ➔ AGENT) */
+    .bob-v2-stages {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      width: 100%;
+    }
+
+    .bob-v2-stage-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.15rem;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      flex: 1;
+      position: relative;
+      border-top: 3px solid transparent;
+    }
+
+    .bob-v2-stage-card.stage-ask { border-top-color: var(--sky); }
+    .bob-v2-stage-card.stage-plan { border-top-color: var(--teal); }
+    .bob-v2-stage-card.stage-agent { border-top-color: var(--violet); }
+
+    .bob-v2-stage-card:hover, .bob-v2-stage-card.active-stage {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .bob-v2-stage-card.stage-ask.active-stage {
+      border-color: var(--sky);
+      box-shadow: 0 0 18px rgba(2, 132, 199, 0.22);
+    }
+    .bob-v2-stage-card.stage-plan.active-stage {
+      border-color: var(--teal);
+      box-shadow: 0 0 18px rgba(13, 148, 136, 0.22);
+    }
+    .bob-v2-stage-card.stage-agent.active-stage {
+      border-color: var(--violet);
+      box-shadow: 0 0 18px rgba(109, 40, 217, 0.22);
+    }
+
+    .bob-v2-stage-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+    }
+
+    .stage-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .pill-sky { color: #0284C7; background: rgba(2, 132, 199, 0.12); }
+    .pill-teal { color: #0D9488; background: rgba(13, 148, 136, 0.12); }
+    .pill-violet { color: #7C3AED; background: rgba(124, 58, 237, 0.12); }
+
+    .stage-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .stage-desc {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .stage-flow-arrow {
+      color: var(--teal);
+      font-size: 1.25rem;
+      font-weight: 800;
+      opacity: 0.6;
+    }
+
+    /* Middle Section: 2 Spacious Balanced Cards */
+    .bob-v2-insights {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.15rem;
+      flex: 1;
+    }
+
+    .bob-v2-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 1.05rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(8px);
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .bob-v2-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--sky);
+      box-shadow: var(--shadow-md);
+    }
+
+    .insight-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 0.2rem 0.65rem;
+      border-radius: 6px;
+      width: fit-content;
+      margin-bottom: 0.55rem;
+      letter-spacing: 0.03em;
+    }
+
+    .insight-headline {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.3;
+      margin-bottom: 0.4rem;
+    }
+
+    .insight-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 0.65rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .insight-list li {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+    }
+
+    .insight-list li strong {
+      color: var(--navy);
+    }
+
+    .insight-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: auto;
+    }
+
+    .pill-chip {
+      background: #F1F5F9;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--navy);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Challenge Workflow Container */
+    .challenge-card {
+      border-top: 3px solid var(--rose);
+    }
+
+    .challenge-alert {
+      background: rgba(190, 18, 60, 0.06);
+      border: 1px solid rgba(190, 18, 60, 0.2);
+      border-radius: 6px;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--rose);
+      margin-bottom: 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .workflow-container {
+      margin-top: auto;
+      background: #F8FAFC;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+    }
+
+    .workflow-title {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.45rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .workflow-steps-chain {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .wf-step {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      padding: 0.25rem 0.55rem;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--navy);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .wf-step.wf-guide {
+      background: rgba(2, 132, 199, 0.1);
+      border-color: var(--sky);
+      color: var(--sky);
+    }
+
+    .wf-step.wf-exec {
+      background: rgba(13, 148, 136, 0.15);
+      border-color: var(--teal);
+      color: var(--teal-dark);
+    }
+
+    .wf-arr {
+      font-size: 0.8rem;
+      color: var(--teal);
+      font-weight: 800;
+    }
+
+    /* Bottom Banner */
+    .bob-v2-bottom-banner {
+      background: linear-gradient(135deg, var(--navy) 0%, #061B33 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-left: 4px solid var(--teal-light);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1.6rem;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(15, 44, 76, 0.2);
+    }
+
+    .banner-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .banner-sparkle {
+      font-size: 1.3rem;
+      color: #38BDF8;
+    }
+
+    .banner-title {
+      font-size: 1.22rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -0.01em;
+    }
+
+    .banner-subtitle {
+      font-size: 0.82rem;
+      color: #CBD5E1;
+    }
+
+    .banner-pill {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.3rem 0.85rem;
+      border-radius: var(--radius-full);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #38BDF8;
+    }
+
+    /* ========================================================
+       PRESENTER DRAWER, GRID OVERVIEW, & MODALS
+       ======================================================== */
+    #presenter-drawer {
+      position: fixed;
+      right: -480px;
+      top: 0;
+      width: 480px;
+      height: 100vh;
+      background: #091C31;
+      color: #E2E8F0;
+      z-index: 200;
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.4);
+      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #presenter-drawer.open {
+      right: 0;
+    }
+
+    .presenter-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .presenter-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .presenter-close {
+      background: none;
+      border: none;
+      color: #94A3B8;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    .presenter-timer-box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .timer-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--teal-light);
+    }
+
+    .timer-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .timer-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .timer-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .presenter-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .notes-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+    }
+
+    .notes-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--teal-light);
+      margin-bottom: 0.6rem;
+    }
+
+    .notes-content {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #CBD5E1;
+    }
+
+    .notes-content ul {
+      margin-left: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .notes-content li {
+      margin-bottom: 0.4rem;
+    }
+
+    /* Grid Overview Modal */
+    #grid-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(9, 28, 49, 0.88);
+      backdrop-filter: blur(12px);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      padding: 3rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+
+    #grid-modal.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .grid-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #FFFFFF;
+      margin-bottom: 2rem;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      overflow-y: auto;
+      padding-bottom: 2rem;
+    }
+
+    .grid-thumb {
+      background: var(--card-bg);
+      border: 2px solid transparent;
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 140px;
+    }
+
+    .grid-thumb:hover, .grid-thumb.active {
+      border-color: var(--teal-light);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .grid-thumb-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--teal);
+    }
+
+    .grid-thumb-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-top: 0.5rem;
+    }
+
+    /* Shortcut Help Modal */
+    #help-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      z-index: 400;
+      width: 480px;
+      max-width: 90vw;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+
+    #help-modal.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .help-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 44, 76, 0.6);
+      z-index: 390;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+
+    .help-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #E2E8F0;
+      font-size: 0.95rem;
+    }
+
+    .kbd {
+      font-family: 'JetBrains Mono', monospace;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    /* Blackout screen */
+    #blackout {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000000;
+      z-index: 500;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s;
+    }
+
+    #blackout.active {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Deck Wrapper -->
+  <div id="deck-container">
+    <!-- Ambient Lighting Orbs matching main website -->
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+
+    <!-- Top Progress Bar -->
+    <div id="progress-bar"></div>
+
+    <!-- Stage / Slide Area -->
+    <main id="stage">
+
+      <!-- ================= SLIDE 1 ================= -->
+      <section class="slide active" id="slide-1" data-index="1">
+        <div class="slide-1-content">
+          <div class="hero-badge">Government Schemes Discovery Platform</div>
+          <h1 class="hero-title">SchemeNavigator</h1>
+          <h2 class="hero-tagline">Discover. Understand. Apply.</h2>
+          <p class="hero-sub">AI-powered navigation for Government Schemes</p>
+
+          <div class="team-card tilt-card">
+            <div class="team-label">Team AI Titans</div>
+            <div class="team-members">
+              <span class="team-pill">SAURJENDU SAHOO</span>
+              <span class="team-pill">SIMRAN</span>
+              <span class="team-pill">KHANAK</span>
+              <span class="team-pill">DIVYANSH GUPTA</span>
+            </div>
+          </div>
+
+          <div class="hero-footer-banner">
+            <span>Citizen-first</span>
+            <span>•</span>
+            <span>Privacy-first</span>
+            <span>•</span>
+            <span>Explainable</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SLIDE 2 ================= -->
+      <section class="slide" id="slide-2" data-index="2">
+        <div class="slide-header">
+          <div class="slide-tag" style="color: var(--rose); background: rgba(190, 18, 60, 0.1); border-color: rgba(190, 18, 60, 0.2);">The Challenge</div>
+          <h2 class="slide-title">India has schemes. Citizens lack navigation.</h2>
+        </div>
+
+        <div class="problem-grid">
+          <!-- Discover -->
+          <div class="problem-card discover tilt-card" onclick="toggleProblemCase(1)">
+            <div class="problem-badge">01 • Discover</div>
+            <div class="problem-desc">Don't know which schemes exist.</div>
+            <div class="case-study-box" id="case-box-1">
+              <div class="case-study-header">
+                <span>Citizen Case</span>
+                <span style="color: var(--teal); font-size: 0.75rem;">Interactive</span>
+              </div>
+              <p>Ramesh (Smallholder Farmer, Odisha) qualified for ₹10,000/yr support for 3 years, but missed it completely because no department notified him.</p>
+            </div>
+          </div>
+
+          <!-- Understand -->
+          <div class="problem-card understand tilt-card" onclick="toggleProblemCase(2)">
+            <div class="problem-badge">02 • Understand</div>
+            <div class="problem-desc">Eligibility & documents are difficult to decode.</div>
+            <div class="case-study-box" id="case-box-2">
+              <div class="case-study-header">
+                <span>Citizen Case</span>
+                <span style="color: var(--amber); font-size: 0.75rem;">Interactive</span>
+              </div>
+              <p>Sunita found a 42-page gazette PDF filled with bureaucratic legalese like 'Affidavit of Non-Encumbrance', leading to application abandonment.</p>
+            </div>
+          </div>
+
+          <!-- Trust -->
+          <div class="problem-card trust tilt-card" onclick="toggleProblemCase(3)">
+            <div class="problem-badge">03 • Trust</div>
+            <div class="problem-desc">Hard to identify the genuine application portal.</div>
+            <div class="case-study-box" id="case-box-3">
+              <div class="case-study-header">
+                <span>Citizen Case</span>
+                <span style="color: var(--gold); font-size: 0.75rem;">Interactive</span>
+              </div>
+              <p>Searches on Google lead citizens to scam portals asking for ₹500 processing fees and harvesting Aadhaar OTPs.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-banner">
+          <div>
+            <div class="result-title">The Result</div>
+            <div class="result-text">Eligible citizens can miss benefits that already exist.</div>
+          </div>
+          <div style="font-size: 2.4rem;">⚠️</div>
+        </div>
+      </section>
+
+      <!-- ================= SLIDE 3 ================= -->
+      <section class="slide" id="slide-3" data-index="3">
+        <div class="slide-header">
+          <div class="slide-tag">Our Solution</div>
+          <h2 class="slide-title">From Citizen Profile → Right Scheme → Right Action</h2>
+        </div>
+
+        <div class="solution-pipeline">
+          <div class="step-card step-1 active-step" id="step-1" onclick="selectStep(1)">
+            <div class="step-num-badge">1</div>
+            <div class="step-title">PROFILE</div>
+            <div class="step-body">Tell us about yourself</div>
+          </div>
+
+          <div class="pipeline-arrow">→</div>
+
+          <div class="step-card step-2" id="step-2" onclick="selectStep(2)">
+            <div class="step-num-badge">2</div>
+            <div class="step-title">MATCH</div>
+            <div class="step-body">Rule-based scheme matching</div>
+          </div>
+
+          <div class="pipeline-arrow">→</div>
+
+          <div class="step-card step-3" id="step-3" onclick="selectStep(3)">
+            <div class="step-num-badge">3</div>
+            <div class="step-title">EXPLAIN</div>
+            <div class="step-body">Why you match + benefits + documents</div>
+          </div>
+
+          <div class="pipeline-arrow">→</div>
+
+          <div class="step-card step-4" id="step-4" onclick="selectStep(4)">
+            <div class="step-num-badge">4</div>
+            <div class="step-title">ASSIST</div>
+            <div class="step-body">AI Advisor • Voice • 12+ Languages</div>
+          </div>
+
+          <div class="pipeline-arrow">→</div>
+
+          <div class="step-card step-5" id="step-5" onclick="selectStep(5)">
+            <div class="step-num-badge">5</div>
+            <div class="step-title">ACT</div>
+            <div class="step-body">Official Portal • Tracker • Kendra</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Step Detail Showcase -->
+        <div class="step-detail-panel" id="step-detail-panel">
+          <div class="step-detail-left">
+            <h4 id="step-detail-title"><span>1. PROFILE</span> · Non-invasive Citizen Onboarding</h4>
+            <p id="step-detail-desc">Takes 6 simple demographic attributes (State, Age, Income, Gender, Caste, Occupation). Zero Aadhaar or PAN storage. 100% anonymous & private.</p>
+          </div>
+          <button class="auto-play-btn" id="btn-auto-step" onclick="toggleAutoPlayPipeline()">
+            <span>▶</span>
+            <span>Auto Play Journey</span>
+          </button>
+        </div>
+
+        <div class="solution-banner">
+          <h3>Rules decide. AI explains.</h3>
+        </div>
+      </section>
+
+      <!-- ================= SLIDE 4 ================= -->
+      <section class="slide" id="slide-4" data-index="4">
+        <div class="slide-header">
+          <div class="slide-tag" style="color: var(--sky); background: rgba(2, 132, 199, 0.1); border-color: rgba(2, 132, 199, 0.25);">IBM BoB Agentic Engineering</div>
+          <h2 class="slide-title">IBM BoB × SchemeNavigator</h2>
+          <div class="slide-subtitle">AI Accelerates. Humans Guide.</div>
+        </div>
+
+        <div class="bob-v2-container">
+          <!-- Top Row: 3 Pipeline Stages (ASK ➔ PLAN ➔ AGENT) -->
+          <div class="bob-v2-stages">
+            <!-- Stage 1: ASK -->
+            <div class="bob-v2-stage-card stage-ask tilt-card active-stage" onclick="selectBobStage(1)">
+              <div class="bob-v2-stage-head">
+                <span class="stage-pill pill-sky">PHASE 01</span>
+                <span style="font-size: 1.1rem;">💡</span>
+              </div>
+              <h3 class="stage-title">ASK</h3>
+              <p class="stage-desc">Understand the Problem • Explore Ideas</p>
+            </div>
+
+            <div class="stage-flow-arrow">➔</div>
+
+            <!-- Stage 2: PLAN -->
+            <div class="bob-v2-stage-card stage-plan tilt-card" onclick="selectBobStage(2)">
+              <div class="bob-v2-stage-head">
+                <span class="stage-pill pill-teal">PHASE 02</span>
+                <span style="font-size: 1.1rem;">📐</span>
+              </div>
+              <h3 class="stage-title">PLAN</h3>
+              <p class="stage-desc">Frontend & Backend Architecture • Tech Choices</p>
+            </div>
+
+            <div class="stage-flow-arrow">➔</div>
+
+            <!-- Stage 3: AGENT -->
+            <div class="bob-v2-stage-card stage-agent tilt-card" onclick="selectBobStage(3)">
+              <div class="bob-v2-stage-head">
+                <span class="stage-pill pill-violet">PHASE 03</span>
+                <span style="font-size: 1.1rem;">🤖</span>
+              </div>
+              <h3 class="stage-title">AGENT</h3>
+              <p class="stage-desc">Build • Integrate • Execute</p>
+            </div>
+          </div>
+
+          <!-- Middle Section: 3 Balanced Cards -->
+          <div class="bob-v2-insights">
+            <!-- Card 1: OUR EXPERIENCE -->
+            <div class="bob-v2-card tilt-card" style="border-top: 3px solid var(--teal);">
+              <div class="insight-badge" style="color: var(--teal); background: rgba(13, 148, 136, 0.12);">
+                <span>✨</span> OUR EXPERIENCE
+              </div>
+              <div class="insight-headline">Frontend + Backend Built from Scratch</div>
+              <ul class="insight-list">
+                <li><span>🎨</span> <span><strong>Creative UI:</strong> Custom design system & glassmorphism</span></li>
+                <li><span>🎬</span> <span><strong>Rich Animations:</strong> 3D tilt, audio synthesis & smooth steps</span></li>
+                <li><span>🚀</span> <span><strong>Fast Iteration:</strong> Concept to working product in record time</span></li>
+              </ul>
+              <div class="insight-tags">
+                <span class="pill-chip">FastAPI</span>
+                <span class="pill-chip">React 19</span>
+                <span class="pill-chip">Deterministic Rules</span>
+              </div>
+            </div>
+
+            <!-- Card 2: CHALLENGE WE FACED -->
+            <div class="bob-v2-card challenge-card tilt-card">
+              <div class="insight-badge" style="color: var(--rose); background: rgba(190, 18, 60, 0.12);">
+                <span>⚠️</span> CHALLENGE WE FACED
+              </div>
+              <div class="challenge-alert">
+                <span>⚡</span> Generic Bug Report → Root Cause Not Always Detected
+              </div>
+              <div class="workflow-container">
+                <div class="workflow-title">Our Workflow:</div>
+                <div class="workflow-steps-chain">
+                  <span class="wf-step">Find</span>
+                  <span class="wf-arr">→</span>
+                  <span class="wf-step">Ask</span>
+                  <span class="wf-arr">→</span>
+                  <span class="wf-step wf-guide">Guide</span>
+                  <span class="wf-arr">→</span>
+                  <span class="wf-step wf-exec">Agent Executes</span>
+                </div>
+              </div>
+              <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.35;">
+                <em>Human developer isolates root cause; agent implements solution rapidly.</em>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Full-Width Banner -->
+          <div class="bob-v2-bottom-banner">
+            <div class="banner-left">
+              <span class="banner-sparkle">⚡</span>
+              <div>
+                <div class="banner-title">AI Accelerates. Humans Guide.</div>
+                <div class="banner-subtitle">Human review & validation at every architectural step</div>
+              </div>
+            </div>
+            <div class="banner-pill">IBM BoB × AI Titans</div>
+          </div>
+        </div>
+      </section>
+      </main>
+
+    <!-- Bottom Status Bar -->
+    <footer id="bottom-bar">
+      <div class="bar-brand">
+        <div class="dot"></div>
+        <span>SchemeNavigator</span>
+        <span class="bar-tagline">· Discover. Understand. Apply.</span>
+      </div>
+
+      <div class="bar-controls">
+        <div class="counter-pill"><span id="curr-idx">1</span> / 4</div>
+        <button class="control-btn" id="btn-grid" title="Slide Grid Overview (G / O)">🗂️ Grid</button>
+        <button class="control-btn" id="btn-presenter" title="Toggle Presenter Mode (P)">🎙️ Notes</button>
+        <button class="control-btn" id="btn-fullscreen" title="Toggle Fullscreen (F)">⛶ Fullscreen</button>
+        <button class="control-btn" id="btn-sound" title="Toggle Sound (M)">🔊 Sound: ON</button>
+        <button class="control-btn" id="btn-help" title="Shortcuts (?)">❓</button>
+        <button class="control-btn footer-hide-btn" id="btn-hide-footer" title="Toggle Controls (C / H)">
+          <span>Hide (C / H)</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Presenter Mode Drawer -->
+  <aside id="presenter-drawer">
+    <div class="presenter-header">
+      <h3><span>🎙️</span> Presenter View & Notes</h3>
+      <button class="presenter-close" id="presenter-close">✕</button>
+    </div>
+
+    <div class="presenter-timer-box">
+      <div>
+        <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase;">Elapsed Time</div>
+        <div class="timer-display" id="timer">00:00</div>
+      </div>
+      <div class="timer-actions">
+        <button class="timer-btn" id="timer-toggle">Start</button>
+        <button class="timer-btn" id="timer-reset">Reset</button>
+      </div>
+    </div>
+
+    <div class="presenter-body">
+      <div class="notes-card">
+        <div class="notes-title">Current Slide</div>
+        <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF;" id="notes-slide-name">SchemeNavigator</div>
+      </div>
+
+      <div class="notes-card">
+        <div class="notes-title">Spoken Pitch Talking Points</div>
+        <div class="notes-content" id="notes-content">
+          <!-- Dynamic talking points filled via JS -->
+        </div>
+      </div>
+
+      <div class="notes-card">
+        <div class="notes-title">Anticipated Judge Q&A</div>
+        <div class="notes-content" id="notes-qa">
+          <!-- Dynamic Q&A filled via JS -->
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Grid Overview Modal -->
+  <div id="grid-modal">
+    <div class="grid-header">
+      <h2>Slide Overview</h2>
+      <button class="control-btn" id="grid-close" style="font-size: 1rem; padding: 0.5rem 1rem;">✕ Close (Esc)</button>
+    </div>
+    <div class="grid-container" id="grid-container">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+
+  <!-- Help / Shortcuts Modal -->
+  <div class="help-overlay" id="help-overlay"></div>
+  <div id="help-modal">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--navy);">Keyboard Shortcuts</h3>
+      <button id="help-close" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">✕</button>
+    </div>
+    <div class="shortcut-row"><span>Next Slide</span> <span class="kbd">→ / Space / PgDn</span></div>
+    <div class="shortcut-row"><span>Previous Slide</span> <span class="kbd">← / PgUp</span></div>
+    <div class="shortcut-row"><span>Jump to Slide</span> <span class="kbd">1 · 2 · 3 · 4</span></div>
+    <div class="shortcut-row"><span>First / Last Slide</span> <span class="kbd">Home / End</span></div>
+    <div class="shortcut-row"><span>Toggle Controls / Footer</span> <span class="kbd">C / H</span></div>
+    <div class="shortcut-row"><span>Toggle Sound</span> <span class="kbd">M</span></div>
+    <div class="shortcut-row"><span>Toggle Fullscreen</span> <span class="kbd">F</span></div>
+    <div class="shortcut-row"><span>Presenter Mode & Notes</span> <span class="kbd">P</span></div>
+    <div class="shortcut-row"><span>Slide Grid Overview</span> <span class="kbd">G / O</span></div>
+    <div class="shortcut-row"><span>Blackout Screen</span> <span class="kbd">B</span></div>
+    <div class="shortcut-row"><span>Close Modals</span> <span class="kbd">Esc</span></div>
+  </div>
+
+  <!-- Blackout Curtain -->
+  <div id="blackout"></div>
+
+  <script>
+    // Presenter Notes Data for all 8 Slides
+    const slideNotes = {
+      1: {
+        title: "Slide 1: SchemeNavigator Title",
+        points: [
+          "Hook the audience immediately: <em>'Over 3,800 schemes exist in India, but millions of citizens miss out because there is no GPS for welfare.'</em>",
+          "Introduce SchemeNavigator: <strong>Discover. Understand. Apply.</strong>",
+          "Emphasize the 3 non-negotiable pillars: <strong>Citizen-first, Privacy-first (no Aadhaar/PAN required), and fully Explainable.</strong>",
+          "Introduce the team: Team AI Titans (Saurjendu, Simran, Khanak, Divyansh)."
+        ],
+        qa: "<strong>Q: How is this different from myScheme?</strong><br>A: myScheme is a passive repository. We provide explainable rule matching, 12+ language voice AI advisory, Kendra navigation, and active tracking without harvesting sensitive citizen PII."
+      },
+      2: {
+        title: "Slide 2: The Problem",
+        points: [
+          "Frame the core problem: India does not have a scheme shortage — it has a <strong>navigation failure</strong>.",
+          "Walk through the 3 friction points: <strong>Discover</strong> (citizens don't know schemes exist), <strong>Understand</strong> (eligibility criteria and document jargon are too complex), and <strong>Trust</strong> (phishing portals & fraud).",
+          "Click on the cards to show judges real-world citizen case studies.",
+          "Land the punchline: <strong>'Eligible citizens miss benefits that already exist.'</strong>"
+        ],
+        qa: "<strong>Q: What is the biggest barrier for rural citizens?</strong><br>A: Linguistic complexity and lack of document readiness. Our voice AI in 12+ languages bridges both."
+      },
+      3: {
+        title: "Slide 3: Our Solution",
+        points: [
+          "Walk through the 5-step citizen journey: Profile → Match → Explain → Assist → Act.",
+          "Click through steps or use Auto-Play to show judges how each phase works.",
+          "Point out step 2 & 3: Match is deterministic; Explain provides the rationale so the citizen knows exactly why they qualify.",
+          "Highlight step 4: Multilingual Voice AI assistant.",
+          "Close with the golden rule: <strong>'Rules decide. AI explains.'</strong> This guarantees zero AI hallucinations on eligibility."
+        ],
+        qa: "<strong>Q: What if the AI gives wrong eligibility advice?</strong><br>A: AI never determines eligibility. The deterministic rule engine evaluates eligibility with mathematical precision. The LLM only translates, simplifies, and explains the rule output."
+      },
+      4: {
+        title: "Slide 4: IBM BoB × SchemeNavigator",
+        points: [
+          "Walk through our 3-step agentic cycle: <strong>ASK</strong> (Understand Problem, Explore Ideas), <strong>PLAN</strong> (Frontend & Backend Architecture, Tech Choices), and <strong>AGENT</strong> (Build, Integrate, Execute).",
+          "Highlight our experience: <strong>Frontend + Backend built from scratch</strong> with creative UI, rich animations, and ultra-fast iteration.",
+          "Address real engineering challenges: <strong>Generic Bug Report → Root Cause Not Always Detected</strong>, and our proven workflow: <strong>Find → Ask → Guide → Agent Executes</strong>.",
+          "Close with our core principle: <strong>'AI Accelerates. Humans Guide.'</strong>"
+        ],
+        qa: "<strong>Q: How did IBM BoB accelerate development?</strong><br>A: It handled repetitive scaffolding, architecture planning, and complex rule models, allowing our team to focus on human validation, design quality, and zero-hallucination accuracy."
+      }
+    };
+
+    const totalSlides = 4;
+    let currentSlide = 1;
+    let isPresenterOpen = false;
+    let isGridOpen = false;
+    let isBlackout = false;
+    let isFooterHidden = false;
+    let soundEnabled = true;
+
+    // Elements
+    const slides = document.querySelectorAll('.slide');
+    const progressBar = document.getElementById('progress-bar');
+    const currIdxSpan = document.getElementById('curr-idx');
+    const bottomBar = document.getElementById('bottom-bar');
+    const presenterDrawer = document.getElementById('presenter-drawer');
+    const gridModal = document.getElementById('grid-modal');
+    const gridContainer = document.getElementById('grid-container');
+    const helpModal = document.getElementById('help-modal');
+    const helpOverlay = document.getElementById('help-overlay');
+    const blackout = document.getElementById('blackout');
+
+    // Timer State
+    let timerInterval = null;
+    let timerSeconds = 0;
+    let isTimerRunning = false;
+
+    // Sound Synthesizer via Web Audio API (Zero external assets)
+    let audioCtx = null;
+    function playTone(freq, type = 'sine', duration = 0.08, gain = 0.06) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        g.gain.setValueAtTime(gain, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundClick() { playTone(580, 'sine', 0.05, 0.04); }
+    function soundSlide() { playTone(440, 'triangle', 0.12, 0.05); }
+
+    // Toggle Sound
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btn-sound');
+      btn.innerText = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+      if (soundEnabled) soundClick();
+    }
+
+    // Hide / Show Footer Logic
+    function hideFooter() {
+      isFooterHidden = true;
+      bottomBar.classList.add('hidden-footer');
+      soundClick();
+    }
+
+    function showFooter() {
+      isFooterHidden = false;
+      bottomBar.classList.remove('hidden-footer');
+      soundClick();
+    }
+
+    function toggleFooter() {
+      if (isFooterHidden) showFooter(); else hideFooter();
+    }
+
+    // Initialize Grid Overview
+    function buildGrid() {
+      gridContainer.innerHTML = '';
+      slides.forEach((slide, idx) => {
+        const num = idx + 1;
+        const title = slide.querySelector('.slide-title')?.innerText || slide.querySelector('.hero-title')?.innerText || `Slide ${num}`;
+        const card = document.createElement('div');
+        card.className = `grid-thumb ${num === currentSlide ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="grid-thumb-num">SLIDE 0${num}</div>
+          <div class="grid-thumb-title">${title}</div>
+        `;
+        card.onclick = () => {
+          goToSlide(num);
+          closeGrid();
+        };
+        gridContainer.appendChild(card);
+      });
+    }
+
+    // Go To Slide
+    function goToSlide(n) {
+      if (n < 1 || n > totalSlides) return;
+      soundSlide();
+
+      slides.forEach((s) => {
+        s.classList.remove('active', 'prev');
+        const idx = parseInt(s.dataset.index);
+        if (idx < n) s.classList.add('prev');
+      });
+
+      currentSlide = n;
+      const targetSlide = document.getElementById(`slide-${n}`);
+      if (targetSlide) {
+        targetSlide.classList.add('active');
+      }
+
+      // Update Bar & Progress
+      currIdxSpan.innerText = currentSlide;
+      const pct = ((currentSlide - 1) / (totalSlides - 1)) * 100;
+      progressBar.style.width = `${pct}%`;
+
+      // Update Presenter Notes
+      updatePresenterNotes();
+
+      // Update Grid selection
+      document.querySelectorAll('.grid-thumb').forEach((thumb, i) => {
+        thumb.classList.toggle('active', i + 1 === currentSlide);
+      });
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) goToSlide(currentSlide - 1);
+    }
+
+    // Interactive Step Details for Slide 3
+    const stepDetails = {
+      1: {
+        title: "1. PROFILE · Non-invasive Citizen Onboarding",
+        desc: "Takes 6 simple demographic attributes (State, Age, Income, Gender, Caste, Occupation). Zero Aadhaar or PAN storage. 100% anonymous & private."
+      },
+      2: {
+        title: "2. MATCH · High-Speed Deterministic Rule Engine",
+        desc: "Evaluates 3,866+ scheme eligibility rule trees in <50ms with 100% mathematical precision. Guarantees zero AI hallucination in eligibility checks."
+      },
+      3: {
+        title: "3. EXPLAIN · 0–100 Explainability Score Breakdown",
+        desc: "Translates complex criteria into human-friendly explanations: exactly why you matched, estimated financial benefits, and a clear document checklist."
+      },
+      4: {
+        title: "4. ASSIST · Conversational Voice AI in 12+ Languages",
+        desc: "Voice interaction in Hindi, Odia, Tamil, Telugu, Marathi, and more. Citizens can ask questions directly like 'Where do I submit this form?'"
+      },
+      5: {
+        title: "5. ACT · Official Direct Redirection & Kendra Locator",
+        desc: "Direct links to genuine official government application portals + GPS locator for nearest Jan Seva Kendra / CSC for physical doorstep help."
+      }
+    };
+
+    function selectStep(stepNum) {
+      soundClick();
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`step-${i}`);
+        if (el) el.classList.toggle('active-step', i === stepNum);
+      }
+      const data = stepDetails[stepNum];
+      if (data) {
+        document.getElementById('step-detail-title').innerHTML = data.title;
+        document.getElementById('step-detail-desc').innerText = data.desc;
+      }
+    }
+
+    // Auto-Play Pipeline Runner
+    let autoPlayInterval = null;
+    let currentAutoStep = 1;
+    function toggleAutoPlayPipeline() {
+      const btn = document.getElementById('btn-auto-step');
+      if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = null;
+        btn.innerHTML = '<span>▶</span> <span>Auto Play Journey</span>';
+      } else {
+        btn.innerHTML = '<span>⏸</span> <span>Pause Journey</span>';
+        autoPlayInterval = setInterval(() => {
+          currentAutoStep = (currentAutoStep % 5) + 1;
+          selectStep(currentAutoStep);
+        }, 2500);
+      }
+    }
+
+    // Interactive Problem Case Studies Toggle for Slide 2
+    function toggleProblemCase(caseNum) {
+      soundClick();
+      const el = document.getElementById(`case-box-${caseNum}`);
+      if (!el) return;
+      el.style.transform = 'scale(1.02)';
+      setTimeout(() => el.style.transform = 'scale(1)', 200);
+    }
+
+    // Interactive IBM BoB Stage Selection for Slide 4
+    function selectBobStage(n) {
+      soundClick();
+      document.querySelectorAll('.bob-v2-stage-card').forEach((c, idx) => {
+        c.classList.toggle('active-stage', idx + 1 === n);
+      });
+    }
+
+    // Presenter Notes Update
+    function updatePresenterNotes() {
+      const data = slideNotes[currentSlide];
+      if (!data) return;
+
+      document.getElementById('notes-slide-name').innerHTML = data.title;
+      const pointsList = data.points.map(p => `<li>${p}</li>`).join('');
+      document.getElementById('notes-content').innerHTML = `<ul>${pointsList}</ul>`;
+      document.getElementById('notes-qa').innerHTML = data.qa;
+    }
+
+    // Presenter Drawer Toggle
+    function togglePresenter() {
+      soundClick();
+      isPresenterOpen = !isPresenterOpen;
+      presenterDrawer.classList.toggle('open', isPresenterOpen);
+    }
+
+    // Grid Modal
+    function openGrid() {
+      soundClick();
+      buildGrid();
+      isGridOpen = true;
+      gridModal.classList.add('open');
+    }
+
+    function closeGrid() {
+      soundClick();
+      isGridOpen = false;
+      gridModal.classList.remove('open');
+    }
+
+    // Help Modal
+    function toggleHelp(open) {
+      soundClick();
+      helpModal.classList.toggle('open', open);
+      helpOverlay.classList.toggle('open', open);
+    }
+
+    // Blackout Screen
+    function toggleBlackout() {
+      soundClick();
+      isBlackout = !isBlackout;
+      blackout.classList.toggle('active', isBlackout);
+    }
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      soundClick();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Timer Logic
+    function startTimer() {
+      soundClick();
+      if (isTimerRunning) return;
+      isTimerRunning = true;
+      document.getElementById('timer-toggle').innerText = 'Pause';
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const secs = String(timerSeconds % 60).padStart(2, '0');
+        document.getElementById('timer').innerText = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      soundClick();
+      isTimerRunning = false;
+      document.getElementById('timer-toggle').innerText = 'Start';
+      clearInterval(timerInterval);
+    }
+
+    function resetTimer() {
+      soundClick();
+      pauseTimer();
+      timerSeconds = 0;
+      document.getElementById('timer').innerText = '00:00';
+    }
+
+    // Demo CTA Action
+    document.addEventListener('keydown', (e) => {
+      // If modal open, handle Esc
+      if (e.key === 'Escape') {
+        if (isGridOpen) closeGrid();
+        if (helpModal.classList.contains('open')) toggleHelp(false);
+        if (isPresenterOpen) togglePresenter();
+        if (isBlackout) toggleBlackout();
+        return;
+      }
+
+      // Shortcut triggers
+      switch (e.key) {
+        case 'ArrowRight':
+        case ' ':
+        case 'PageDown':
+        case 'ArrowDown':
+          e.preventDefault();
+          nextSlide();
+          break;
+        case 'ArrowLeft':
+        case 'PageUp':
+        case 'ArrowUp':
+          e.preventDefault();
+          prevSlide();
+          break;
+        case 'Home':
+          e.preventDefault();
+          goToSlide(1);
+          break;
+        case 'End':
+          e.preventDefault();
+          goToSlide(totalSlides);
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+          e.preventDefault();
+          goToSlide(parseInt(e.key));
+          break;
+        case 'c':
+        case 'C':
+        case 'h':
+        case 'H':
+          e.preventDefault();
+          toggleFooter();
+          break;
+        case 'm':
+        case 'M':
+          e.preventDefault();
+          toggleSound();
+          break;
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+        case 'p':
+        case 'P':
+          e.preventDefault();
+          togglePresenter();
+          break;
+        case 'g':
+        case 'G':
+        case 'o':
+        case 'O':
+          e.preventDefault();
+          if (isGridOpen) closeGrid(); else openGrid();
+          break;
+        case 'b':
+        case 'B':
+          e.preventDefault();
+          toggleBlackout();
+          break;
+        case '?':
+          e.preventDefault();
+          toggleHelp(true);
+          break;
+      }
+    });
+
+    // 3D Tilt Effect & Bottom Hover Peek on mouse movement
+    document.addEventListener('mousemove', (e) => {
+      // Auto-peek footer on hover near bottom when hidden
+      if (isFooterHidden) {
+        if (e.clientY > window.innerHeight - 35) {
+          bottomBar.classList.remove('hidden-footer');
+        } else if (e.clientY < window.innerHeight - 70) {
+          bottomBar.classList.add('hidden-footer');
+        }
+      }
+      const cards = document.querySelectorAll('.slide.active .tilt-card');
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const cardX = rect.left + rect.width / 2;
+        const cardY = rect.top + rect.height / 2;
+        const deltaX = (mouseX - cardX) / (window.innerWidth / 2);
+        const deltaY = (mouseY - cardY) / (window.innerHeight / 2);
+        if (Math.abs(mouseX - cardX) < 400 && Math.abs(mouseY - cardY) < 400) {
+          const rotX = -deltaY * 5;
+          const rotY = deltaX * 5;
+          card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-4px)`;
+        } else {
+          card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
+        }
+      });
+    });
+
+    // Button Listeners
+    document.getElementById('btn-hide-footer').onclick = toggleFooter;
+    document.getElementById('btn-sound').onclick = toggleSound;
+    document.getElementById('btn-presenter').onclick = togglePresenter;
+    document.getElementById('presenter-close').onclick = togglePresenter;
+    document.getElementById('btn-grid').onclick = openGrid;
+    document.getElementById('grid-close').onclick = closeGrid;
+    document.getElementById('btn-fullscreen').onclick = toggleFullscreen;
+    document.getElementById('btn-help').onclick = () => toggleHelp(true);
+    document.getElementById('help-close').onclick = () => toggleHelp(false);
+    document.getElementById('help-overlay').onclick = () => toggleHelp(false);
+    document.getElementById('timer-toggle').onclick = () => {
+      if (isTimerRunning) pauseTimer(); else startTimer();
+    };
+    document.getElementById('timer-reset').onclick = resetTimer;
+
+    // Initial setup
+    goToSlide(1);
+  </script>
+</body>
+</html>
